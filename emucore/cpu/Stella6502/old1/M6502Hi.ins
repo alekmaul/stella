@@ -1,0 +1,4445 @@
+//============================================================================
+//
+// MM     MM  6666  555555  0000   2222
+// MMMM MMMM 66  66 55     00  00 22  22
+// MM MMM MM 66     55     00  00     22
+// MM  M  MM 66666  55555  00  00  22222  --  "A 6502 Microprocessor Emulator"
+// MM     MM 66  66     55 00  00 22
+// MM     MM 66  66 55  55 00  00 22
+// MM     MM  6666   5555   0000  222222
+//
+// Copyright (c) 1995-2005 by Bradford W. Mott and the Stella team
+//
+// See the file "license" for information on usage and redistribution of
+// this file, and for a DISCLAIMER OF ALL WARRANTIES.
+//
+// $Id: M6502Hi.ins,v 1.2 2005/06/16 01:11:28 stephena Exp $
+//============================================================================
+
+/**
+  Code to handle addressing modes and branch instructions for
+  high compatibility emulation
+
+  @author  Bradford W. Mott
+  @version $Id: M6502Hi.ins,v 1.2 2005/06/16 01:11:28 stephena Exp $
+*/
+
+#ifndef NOTSAMEPAGE
+  #define NOTSAMEPAGE(_addr1, _addr2) (((_addr1) ^ (_addr2)) & 0xff00)
+#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//============================================================================
+//
+// MM     MM  6666  555555  0000   2222
+// MMMM MMMM 66  66 55     00  00 22  22
+// MM MMM MM 66     55     00  00     22
+// MM  M  MM 66666  55555  00  00  22222  --  "A 6502 Microprocessor Emulator"
+// MM     MM 66  66     55 00  00 22
+// MM     MM 66  66 55  55 00  00 22
+// MM     MM  6666   5555   0000  222222
+//
+// Copyright (c) 1995-2005 by Bradford W. Mott and the Stella team
+//
+// See the file "license" for information on usage and redistribution of
+// this file, and for a DISCLAIMER OF ALL WARRANTIES.
+//
+// $Id: M6502Hi.ins,v 1.2 2005/06/16 01:11:28 stephena Exp $
+//============================================================================
+
+/** 
+  Code and cases to emulate each of the 6502 instruction 
+
+  @author  Bradford W. Mott
+  @version $Id: M6502Hi.ins,v 1.2 2005/06/16 01:11:28 stephena Exp $
+*/
+
+#ifndef NOTSAMEPAGE
+  #define NOTSAMEPAGE(_addr1, _addr2) (((_addr1) ^ (_addr2)) & 0xff00)
+#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+lab_0x69:
+{
+  operand = peek(PC++);
+}
+{
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    Int16 sum = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((sum > 127) || (sum < -128));
+
+    sum = (Int16)A + (Int16)operand + (C ? 1 : 0);
+    A = sum;
+    C = (sum > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 sum = ourBCDTable[0][A] + ourBCDTable[0][operand] + (C ? 1 : 0);
+
+    C = (sum > 99);
+    A = ourBCDTable[1][sum & 0xff];
+    notZ = A;
+    N = A & 0x80;
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0x65:
+{
+  operand = peek(peek(PC++));
+}
+{
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    Int16 sum = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((sum > 127) || (sum < -128));
+
+    sum = (Int16)A + (Int16)operand + (C ? 1 : 0);
+    A = sum;
+    C = (sum > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 sum = ourBCDTable[0][A] + ourBCDTable[0][operand] + (C ? 1 : 0);
+
+    C = (sum > 99);
+    A = ourBCDTable[1][sum & 0xff];
+    notZ = A;
+    N = A & 0x80;
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0x75:
+{
+  uInt8 address = peek(PC++);
+  peek(address);
+  address += X;
+  operand = peek(address); 
+}
+{
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    Int16 sum = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((sum > 127) || (sum < -128));
+
+    sum = (Int16)A + (Int16)operand + (C ? 1 : 0);
+    A = sum;
+    C = (sum > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 sum = ourBCDTable[0][A] + ourBCDTable[0][operand] + (C ? 1 : 0);
+
+    C = (sum > 99);
+    A = ourBCDTable[1][sum & 0xff];
+    notZ = A;
+    N = A & 0x80;
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0x6d:
+{
+  uInt16 address = peek(PC++);
+  address |= ((uInt16)peek(PC++) << 8);
+  operand = peek(address);
+}
+{
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    Int16 sum = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((sum > 127) || (sum < -128));
+
+    sum = (Int16)A + (Int16)operand + (C ? 1 : 0);
+    A = sum;
+    C = (sum > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 sum = ourBCDTable[0][A] + ourBCDTable[0][operand] + (C ? 1 : 0);
+
+    C = (sum > 99);
+    A = ourBCDTable[1][sum & 0xff];
+    notZ = A;
+    N = A & 0x80;
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0x7d:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + X));
+  if((low + X) > 0xFF)
+    operand = peek((high | low) + X);
+}
+{
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    Int16 sum = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((sum > 127) || (sum < -128));
+
+    sum = (Int16)A + (Int16)operand + (C ? 1 : 0);
+    A = sum;
+    C = (sum > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 sum = ourBCDTable[0][A] + ourBCDTable[0][operand] + (C ? 1 : 0);
+
+    C = (sum > 99);
+    A = ourBCDTable[1][sum & 0xff];
+    notZ = A;
+    N = A & 0x80;
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0x79:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    Int16 sum = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((sum > 127) || (sum < -128));
+
+    sum = (Int16)A + (Int16)operand + (C ? 1 : 0);
+    A = sum;
+    C = (sum > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 sum = ourBCDTable[0][A] + ourBCDTable[0][operand] + (C ? 1 : 0);
+
+    C = (sum > 99);
+    A = ourBCDTable[1][sum & 0xff];
+    notZ = A;
+    N = A & 0x80;
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0x61:
+{
+  uInt8 pointer = peek(PC++);
+  peek(pointer);
+  pointer += X;
+  uInt16 address = peek(pointer++);
+  address |= ((uInt16)peek(pointer) << 8);
+  operand = peek(address);
+}
+{
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    Int16 sum = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((sum > 127) || (sum < -128));
+
+    sum = (Int16)A + (Int16)operand + (C ? 1 : 0);
+    A = sum;
+    C = (sum > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 sum = ourBCDTable[0][A] + ourBCDTable[0][operand] + (C ? 1 : 0);
+
+    C = (sum > 99);
+    A = ourBCDTable[1][sum & 0xff];
+    notZ = A;
+    N = A & 0x80;
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0x71:
+{
+  uInt8 pointer = peek(PC++);
+  uInt16 low = peek(pointer++);
+  uInt16 high = ((uInt16)peek(pointer) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    Int16 sum = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((sum > 127) || (sum < -128));
+
+    sum = (Int16)A + (Int16)operand + (C ? 1 : 0);
+    A = sum;
+    C = (sum > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 sum = ourBCDTable[0][A] + ourBCDTable[0][operand] + (C ? 1 : 0);
+
+    C = (sum > 99);
+    A = ourBCDTable[1][sum & 0xff];
+    notZ = A;
+    N = A & 0x80;
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+
+lab_0x4b:
+{
+  operand = peek(PC++);
+}
+{
+  A &= operand;
+
+  // Set carry flag according to the right-most bit
+  C = A & 0x01;
+
+  A = (A >> 1) & 0x7f;
+
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+
+lab_0x0b:
+lab_0x2b:
+{
+  operand = peek(PC++);
+}
+{
+  A &= operand;
+  notZ = A;
+  N = A & 0x80;
+  C = N;
+}
+goto end;
+
+
+lab_0x29:
+{
+  operand = peek(PC++);
+}
+{
+  A &= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x25:
+{
+  operand = peek(peek(PC++));
+}
+{
+  A &= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x35:
+{
+  uInt8 address = peek(PC++);
+  peek(address);
+  address += X;
+  operand = peek(address); 
+}
+{
+  A &= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x2d:
+{
+  uInt16 address = peek(PC++);
+  address |= ((uInt16)peek(PC++) << 8);
+  operand = peek(address);
+}
+{
+  A &= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x3d:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + X));
+  if((low + X) > 0xFF)
+    operand = peek((high | low) + X);
+}
+{
+  A &= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x39:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  A &= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x21:
+{
+  uInt8 pointer = peek(PC++);
+  peek(pointer);
+  pointer += X;
+  uInt16 address = peek(pointer++);
+  address |= ((uInt16)peek(pointer) << 8);
+  operand = peek(address);
+}
+{
+  A &= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x31:
+{
+  uInt8 pointer = peek(PC++);
+  uInt16 low = peek(pointer++);
+  uInt16 high = ((uInt16)peek(pointer) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  A &= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+
+lab_0x8b:
+{
+  operand = peek(PC++);
+}
+{
+  // NOTE: The implementation of this instruction is based on
+  // information from the 64doc.txt file.  This instruction is
+  // reported to be unstable!
+  A = (A | 0xee) & X & operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+
+lab_0x6b:
+{
+  operand = peek(PC++);
+}
+{
+  // NOTE: The implementation of this instruction is based on
+  // information from the 64doc.txt file.  There are mixed
+  // reports on its operation!
+  if(!D)
+  {
+    A &= operand;
+    A = ((A >> 1) & 0x7f) | (C ? 0x80 : 0x00);
+
+    C = A & 0x40;
+    V = (A & 0x40) ^ ((A & 0x20) << 1);
+
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    uInt8 value = A & operand;
+
+    A = ((value >> 1) & 0x7f) | (C ? 0x80 : 0x00);
+    N = C;
+    notZ = A;
+    V = (value ^ A) & 0x40;
+
+    if(((value & 0x0f) + (value & 0x01)) > 0x05)
+    {
+      A = (A & 0xf0) | ((A + 0x06) & 0x0f);
+    }
+    
+    if(((value & 0xf0) + (value & 0x10)) > 0x50) 
+    {
+      A = (A + 0x60) & 0xff;
+      C = 1;
+    }
+    else
+    {
+      C = 0;
+    }
+  }
+}
+goto end;
+
+
+lab_0x0a:
+{
+  peek(PC);
+}
+{
+  // Set carry flag according to the left-most bit in A
+  C = A & 0x80;
+
+  A <<= 1;
+
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x06:
+{
+  operandAddress = peek(PC++);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the left-most bit in value
+  C = operand & 0x80;
+
+  operand <<= 1;
+  poke(operandAddress, operand);
+
+  notZ = operand;
+  N = operand & 0x80;
+}
+goto end;
+
+lab_0x16:
+{
+  operandAddress = peek(PC++);
+  peek(operandAddress);
+  operandAddress = (operandAddress + X) & 0xFF;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the left-most bit in value
+  C = operand & 0x80;
+
+  operand <<= 1;
+  poke(operandAddress, operand);
+
+  notZ = operand;
+  N = operand & 0x80;
+}
+goto end;
+
+lab_0x0e:
+{
+  operandAddress = peek(PC++);
+  operandAddress |= ((uInt16)peek(PC++) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the left-most bit in value
+  C = operand & 0x80;
+
+  operand <<= 1;
+  poke(operandAddress, operand);
+
+  notZ = operand;
+  N = operand & 0x80;
+}
+goto end;
+
+lab_0x1e:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + X));
+  operandAddress = (high | low) + X;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the left-most bit in value
+  C = operand & 0x80;
+
+  operand <<= 1;
+  poke(operandAddress, operand);
+
+  notZ = operand;
+  N = operand & 0x80;
+}
+goto end;
+
+
+lab_0x90:
+{
+  operand = peek(PC++);
+}
+{
+  if(!C)
+  {
+    peek(PC);
+    uInt16 address = PC + (Int8)operand;
+    if(NOTSAMEPAGE(PC, address))
+      peek((PC & 0xFF00) | (address & 0x00FF));
+    PC = address;
+  }
+}
+goto end;
+
+
+lab_0xb0:
+{
+  operand = peek(PC++);
+}
+{
+  if(C)
+  {
+    peek(PC);
+    uInt16 address = PC + (Int8)operand;
+    if(NOTSAMEPAGE(PC, address))
+      peek((PC & 0xFF00) | (address & 0x00FF));
+    PC = address;
+  }
+}
+goto end;
+
+
+lab_0xf0:
+{
+  operand = peek(PC++);
+}
+{
+  if(!notZ)
+  {
+    peek(PC);
+    uInt16 address = PC + (Int8)operand;
+    if(NOTSAMEPAGE(PC, address))
+      peek((PC & 0xFF00) | (address & 0x00FF));
+    PC = address;
+  }
+}
+goto end;
+
+
+lab_0x24:
+{
+  operand = peek(peek(PC++));
+}
+{
+  notZ = (A & operand);
+  N = operand & 0x80;
+  V = operand & 0x40;
+}
+goto end;
+
+lab_0x2c:
+{
+  uInt16 address = peek(PC++);
+  address |= ((uInt16)peek(PC++) << 8);
+  operand = peek(address);
+}
+{
+  notZ = (A & operand);
+  N = operand & 0x80;
+  V = operand & 0x40;
+}
+goto end;
+
+
+lab_0x30:
+{
+  operand = peek(PC++);
+}
+{
+  if(N)
+  {
+    peek(PC);
+    uInt16 address = PC + (Int8)operand;
+    if(NOTSAMEPAGE(PC, address))
+      peek((PC & 0xFF00) | (address & 0x00FF));
+    PC = address;
+  }
+}
+goto end;
+
+
+lab_0xd0:
+{
+  operand = peek(PC++);
+}
+{
+  if(notZ)
+  {
+    peek(PC);
+    uInt16 address = PC + (Int8)operand;
+    if(NOTSAMEPAGE(PC, address))
+      peek((PC & 0xFF00) | (address & 0x00FF));
+    PC = address;
+  }
+}
+goto end;
+
+
+lab_0x10:
+{
+  operand = peek(PC++);
+}
+{
+  if(!N)
+  {
+    peek(PC);
+    uInt16 address = PC + (Int8)operand;
+    if(NOTSAMEPAGE(PC, address))
+      peek((PC & 0xFF00) | (address & 0x00FF));
+    PC = address;
+  }
+}
+goto end;
+
+
+lab_0x00:
+{
+  peek(PC++);
+
+  B = true;
+
+  poke(0x0100 + SP--, PC >> 8);
+  poke(0x0100 + SP--, PC & 0x00ff);
+  poke(0x0100 + SP--, PS());
+
+  I = true;
+
+  PC = peek(0xfffe);
+  PC |= ((uInt16)peek(0xffff) << 8);
+}
+goto end;
+
+
+lab_0x50:
+{
+  operand = peek(PC++);
+}
+{
+  if(!V)
+  {
+    peek(PC);
+    uInt16 address = PC + (Int8)operand;
+    if(NOTSAMEPAGE(PC, address))
+      peek((PC & 0xFF00) | (address & 0x00FF));
+    PC = address;
+  }
+}
+goto end;
+
+
+lab_0x70:
+{
+  operand = peek(PC++);
+}
+{
+  if(V)
+  {
+    peek(PC);
+    uInt16 address = PC + (Int8)operand;
+    if(NOTSAMEPAGE(PC, address))
+      peek((PC & 0xFF00) | (address & 0x00FF));
+    PC = address;
+  }
+}
+goto end;
+
+
+lab_0x18:
+{
+  peek(PC);
+}
+{
+  C = false;
+}
+goto end;
+
+
+lab_0xd8:
+{
+  peek(PC);
+}
+{
+  D = false;
+}
+goto end;
+
+
+lab_0x58:
+{
+  peek(PC);
+}
+{
+  I = false;
+}
+goto end;
+
+
+lab_0xb8:
+{
+  peek(PC);
+}
+{
+  V = false;
+}
+goto end;
+
+
+lab_0xc9:
+{
+  operand = peek(PC++);
+}
+{
+  uInt16 value = (uInt16)A - (uInt16)operand;
+
+  notZ = value;
+  N = value & 0x0080;
+  C = !(value & 0x0100);
+}
+goto end;
+
+lab_0xc5:
+{
+  operand = peek(peek(PC++));
+}
+{
+  uInt16 value = (uInt16)A - (uInt16)operand;
+
+  notZ = value;
+  N = value & 0x0080;
+  C = !(value & 0x0100);
+}
+goto end;
+
+lab_0xd5:
+{
+  uInt8 address = peek(PC++);
+  peek(address);
+  address += X;
+  operand = peek(address); 
+}
+{
+  uInt16 value = (uInt16)A - (uInt16)operand;
+
+  notZ = value;
+  N = value & 0x0080;
+  C = !(value & 0x0100);
+}
+goto end;
+
+lab_0xcd:
+{
+  uInt16 address = peek(PC++);
+  address |= ((uInt16)peek(PC++) << 8);
+  operand = peek(address);
+}
+{
+  uInt16 value = (uInt16)A - (uInt16)operand;
+
+  notZ = value;
+  N = value & 0x0080;
+  C = !(value & 0x0100);
+}
+goto end;
+
+lab_0xdd:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + X));
+  if((low + X) > 0xFF)
+    operand = peek((high | low) + X);
+}
+{
+  uInt16 value = (uInt16)A - (uInt16)operand;
+
+  notZ = value;
+  N = value & 0x0080;
+  C = !(value & 0x0100);
+}
+goto end;
+
+lab_0xd9:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  uInt16 value = (uInt16)A - (uInt16)operand;
+
+  notZ = value;
+  N = value & 0x0080;
+  C = !(value & 0x0100);
+}
+goto end;
+
+lab_0xc1:
+{
+  uInt8 pointer = peek(PC++);
+  peek(pointer);
+  pointer += X;
+  uInt16 address = peek(pointer++);
+  address |= ((uInt16)peek(pointer) << 8);
+  operand = peek(address);
+}
+{
+  uInt16 value = (uInt16)A - (uInt16)operand;
+
+  notZ = value;
+  N = value & 0x0080;
+  C = !(value & 0x0100);
+}
+goto end;
+
+lab_0xd1:
+{
+  uInt8 pointer = peek(PC++);
+  uInt16 low = peek(pointer++);
+  uInt16 high = ((uInt16)peek(pointer) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  uInt16 value = (uInt16)A - (uInt16)operand;
+
+  notZ = value;
+  N = value & 0x0080;
+  C = !(value & 0x0100);
+}
+goto end;
+
+
+lab_0xe0:
+{
+  operand = peek(PC++);
+}
+{
+  uInt16 value = (uInt16)X - (uInt16)operand;
+
+  notZ = value;
+  N = value & 0x0080;
+  C = !(value & 0x0100);
+}
+goto end;
+
+lab_0xe4:
+{
+  operand = peek(peek(PC++));
+}
+{
+  uInt16 value = (uInt16)X - (uInt16)operand;
+
+  notZ = value;
+  N = value & 0x0080;
+  C = !(value & 0x0100);
+}
+goto end;
+
+lab_0xec:
+{
+  uInt16 address = peek(PC++);
+  address |= ((uInt16)peek(PC++) << 8);
+  operand = peek(address);
+}
+{
+  uInt16 value = (uInt16)X - (uInt16)operand;
+
+  notZ = value;
+  N = value & 0x0080;
+  C = !(value & 0x0100);
+}
+goto end;
+
+
+lab_0xc0:
+{
+  operand = peek(PC++);
+}
+{
+  uInt16 value = (uInt16)Y - (uInt16)operand;
+
+  notZ = value;
+  N = value & 0x0080;
+  C = !(value & 0x0100);
+}
+goto end;
+
+lab_0xc4:
+{
+  operand = peek(peek(PC++));
+}
+{
+  uInt16 value = (uInt16)Y - (uInt16)operand;
+
+  notZ = value;
+  N = value & 0x0080;
+  C = !(value & 0x0100);
+}
+goto end;
+
+lab_0xcc:
+{
+  uInt16 address = peek(PC++);
+  address |= ((uInt16)peek(PC++) << 8);
+  operand = peek(address);
+}
+{
+  uInt16 value = (uInt16)Y - (uInt16)operand;
+
+  notZ = value;
+  N = value & 0x0080;
+  C = !(value & 0x0100);
+}
+goto end;
+
+
+lab_0xcf:
+{
+  operandAddress = peek(PC++);
+  operandAddress |= ((uInt16)peek(PC++) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = operand - 1;
+  poke(operandAddress, value);
+
+  uInt16 value2 = (uInt16)A - (uInt16)value;
+  notZ = value2;
+  N = value2 & 0x0080;
+  C = !(value2 & 0x0100);
+}
+goto end;
+
+lab_0xdf:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + X));
+  operandAddress = (high | low) + X;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = operand - 1;
+  poke(operandAddress, value);
+
+  uInt16 value2 = (uInt16)A - (uInt16)value;
+  notZ = value2;
+  N = value2 & 0x0080;
+  C = !(value2 & 0x0100);
+}
+goto end;
+
+lab_0xdb:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = operand - 1;
+  poke(operandAddress, value);
+
+  uInt16 value2 = (uInt16)A - (uInt16)value;
+  notZ = value2;
+  N = value2 & 0x0080;
+  C = !(value2 & 0x0100);
+}
+goto end;
+
+lab_0xc7:
+{
+  operandAddress = peek(PC++);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = operand - 1;
+  poke(operandAddress, value);
+
+  uInt16 value2 = (uInt16)A - (uInt16)value;
+  notZ = value2;
+  N = value2 & 0x0080;
+  C = !(value2 & 0x0100);
+}
+goto end;
+
+lab_0xd7:
+{
+  operandAddress = peek(PC++);
+  peek(operandAddress);
+  operandAddress = (operandAddress + X) & 0xFF;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = operand - 1;
+  poke(operandAddress, value);
+
+  uInt16 value2 = (uInt16)A - (uInt16)value;
+  notZ = value2;
+  N = value2 & 0x0080;
+  C = !(value2 & 0x0100);
+}
+goto end;
+
+lab_0xc3:
+{
+  uInt8 pointer = peek(PC++);
+  peek(pointer);
+  pointer += X;
+  operandAddress = peek(pointer++);
+  operandAddress |= ((uInt16)peek(pointer) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = operand - 1;
+  poke(operandAddress, value);
+
+  uInt16 value2 = (uInt16)A - (uInt16)value;
+  notZ = value2;
+  N = value2 & 0x0080;
+  C = !(value2 & 0x0100);
+}
+goto end;
+
+lab_0xd3:
+{
+  uInt8 pointer = peek(PC++);
+  uInt16 low = peek(pointer++);
+  uInt16 high = ((uInt16)peek(pointer) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = operand - 1;
+  poke(operandAddress, value);
+
+  uInt16 value2 = (uInt16)A - (uInt16)value;
+  notZ = value2;
+  N = value2 & 0x0080;
+  C = !(value2 & 0x0100);
+}
+goto end;
+
+
+lab_0xc6:
+{
+  operandAddress = peek(PC++);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = operand - 1;
+  poke(operandAddress, value);
+
+  notZ = value;
+  N = value & 0x80;
+}
+goto end;
+
+lab_0xd6:
+{
+  operandAddress = peek(PC++);
+  peek(operandAddress);
+  operandAddress = (operandAddress + X) & 0xFF;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = operand - 1;
+  poke(operandAddress, value);
+
+  notZ = value;
+  N = value & 0x80;
+}
+goto end;
+
+lab_0xce:
+{
+  operandAddress = peek(PC++);
+  operandAddress |= ((uInt16)peek(PC++) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = operand - 1;
+  poke(operandAddress, value);
+
+  notZ = value;
+  N = value & 0x80;
+}
+goto end;
+
+lab_0xde:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + X));
+  operandAddress = (high | low) + X;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = operand - 1;
+  poke(operandAddress, value);
+
+  notZ = value;
+  N = value & 0x80;
+}
+goto end;
+
+
+lab_0xca:
+{
+  peek(PC);
+}
+{
+  X--;
+
+  notZ = X;
+  N = X & 0x80;
+}
+goto end;
+
+
+lab_0x88:
+{
+  peek(PC);
+}
+{
+  Y--;
+
+  notZ = Y;
+  N = Y & 0x80;
+}
+goto end;
+
+
+lab_0x49:
+{
+  operand = peek(PC++);
+}
+{
+  A ^= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x45:
+{
+  operand = peek(peek(PC++));
+}
+{
+  A ^= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x55:
+{
+  uInt8 address = peek(PC++);
+  peek(address);
+  address += X;
+  operand = peek(address); 
+}
+{
+  A ^= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x4d:
+{
+  uInt16 address = peek(PC++);
+  address |= ((uInt16)peek(PC++) << 8);
+  operand = peek(address);
+}
+{
+  A ^= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x5d:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + X));
+  if((low + X) > 0xFF)
+    operand = peek((high | low) + X);
+}
+{
+  A ^= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x59:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  A ^= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x41:
+{
+  uInt8 pointer = peek(PC++);
+  peek(pointer);
+  pointer += X;
+  uInt16 address = peek(pointer++);
+  address |= ((uInt16)peek(pointer) << 8);
+  operand = peek(address);
+}
+{
+  A ^= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x51:
+{
+  uInt8 pointer = peek(PC++);
+  uInt16 low = peek(pointer++);
+  uInt16 high = ((uInt16)peek(pointer) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  A ^= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+
+lab_0xe6:
+{
+  operandAddress = peek(PC++);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = operand + 1;
+  poke(operandAddress, value);
+
+  notZ = value;
+  N = value & 0x80;
+}
+goto end;
+
+lab_0xf6:
+{
+  operandAddress = peek(PC++);
+  peek(operandAddress);
+  operandAddress = (operandAddress + X) & 0xFF;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = operand + 1;
+  poke(operandAddress, value);
+
+  notZ = value;
+  N = value & 0x80;
+}
+goto end;
+
+lab_0xee:
+{
+  operandAddress = peek(PC++);
+  operandAddress |= ((uInt16)peek(PC++) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = operand + 1;
+  poke(operandAddress, value);
+
+  notZ = value;
+  N = value & 0x80;
+}
+goto end;
+
+lab_0xfe:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + X));
+  operandAddress = (high | low) + X;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = operand + 1;
+  poke(operandAddress, value);
+
+  notZ = value;
+  N = value & 0x80;
+}
+goto end;
+
+
+lab_0xe8:
+{
+  peek(PC);
+}
+{
+  X++;
+  notZ = X;
+  N = X & 0x80;
+}
+goto end;
+
+
+lab_0xc8:
+{
+  peek(PC);
+}
+{
+  Y++;
+  notZ = Y;
+  N = Y & 0x80;
+}
+goto end;
+
+
+lab_0xef:
+{
+  operandAddress = peek(PC++);
+  operandAddress |= ((uInt16)peek(PC++) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  operand = operand + 1;
+  poke(operandAddress, operand);
+
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    operand = ~operand;
+    Int16 difference = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((difference > 127) || (difference < -128));
+
+    difference = ((Int16)A) + ((Int16)operand) + (C ? 1 : 0);
+    A = difference;
+    C = (difference > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 difference = ourBCDTable[0][A] - ourBCDTable[0][operand] 
+        - (C ? 0 : 1);
+
+    if(difference < 0)
+      difference += 100;
+
+    A = ourBCDTable[1][difference];
+    notZ = A;
+    N = A & 0x80;
+
+    C = (oldA >= (operand + (C ? 0 : 1)));
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0xff:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + X));
+  operandAddress = (high | low) + X;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  operand = operand + 1;
+  poke(operandAddress, operand);
+
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    operand = ~operand;
+    Int16 difference = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((difference > 127) || (difference < -128));
+
+    difference = ((Int16)A) + ((Int16)operand) + (C ? 1 : 0);
+    A = difference;
+    C = (difference > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 difference = ourBCDTable[0][A] - ourBCDTable[0][operand] 
+        - (C ? 0 : 1);
+
+    if(difference < 0)
+      difference += 100;
+
+    A = ourBCDTable[1][difference];
+    notZ = A;
+    N = A & 0x80;
+
+    C = (oldA >= (operand + (C ? 0 : 1)));
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0xfb:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  operand = operand + 1;
+  poke(operandAddress, operand);
+
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    operand = ~operand;
+    Int16 difference = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((difference > 127) || (difference < -128));
+
+    difference = ((Int16)A) + ((Int16)operand) + (C ? 1 : 0);
+    A = difference;
+    C = (difference > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 difference = ourBCDTable[0][A] - ourBCDTable[0][operand] 
+        - (C ? 0 : 1);
+
+    if(difference < 0)
+      difference += 100;
+
+    A = ourBCDTable[1][difference];
+    notZ = A;
+    N = A & 0x80;
+
+    C = (oldA >= (operand + (C ? 0 : 1)));
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0xe7:
+{
+  operandAddress = peek(PC++);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  operand = operand + 1;
+  poke(operandAddress, operand);
+
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    operand = ~operand;
+    Int16 difference = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((difference > 127) || (difference < -128));
+
+    difference = ((Int16)A) + ((Int16)operand) + (C ? 1 : 0);
+    A = difference;
+    C = (difference > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 difference = ourBCDTable[0][A] - ourBCDTable[0][operand] 
+        - (C ? 0 : 1);
+
+    if(difference < 0)
+      difference += 100;
+
+    A = ourBCDTable[1][difference];
+    notZ = A;
+    N = A & 0x80;
+
+    C = (oldA >= (operand + (C ? 0 : 1)));
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0xf7:
+{
+  operandAddress = peek(PC++);
+  peek(operandAddress);
+  operandAddress = (operandAddress + X) & 0xFF;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  operand = operand + 1;
+  poke(operandAddress, operand);
+
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    operand = ~operand;
+    Int16 difference = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((difference > 127) || (difference < -128));
+
+    difference = ((Int16)A) + ((Int16)operand) + (C ? 1 : 0);
+    A = difference;
+    C = (difference > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 difference = ourBCDTable[0][A] - ourBCDTable[0][operand] 
+        - (C ? 0 : 1);
+
+    if(difference < 0)
+      difference += 100;
+
+    A = ourBCDTable[1][difference];
+    notZ = A;
+    N = A & 0x80;
+
+    C = (oldA >= (operand + (C ? 0 : 1)));
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0xe3:
+{
+  uInt8 pointer = peek(PC++);
+  peek(pointer);
+  pointer += X;
+  operandAddress = peek(pointer++);
+  operandAddress |= ((uInt16)peek(pointer) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  operand = operand + 1;
+  poke(operandAddress, operand);
+
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    operand = ~operand;
+    Int16 difference = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((difference > 127) || (difference < -128));
+
+    difference = ((Int16)A) + ((Int16)operand) + (C ? 1 : 0);
+    A = difference;
+    C = (difference > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 difference = ourBCDTable[0][A] - ourBCDTable[0][operand] 
+        - (C ? 0 : 1);
+
+    if(difference < 0)
+      difference += 100;
+
+    A = ourBCDTable[1][difference];
+    notZ = A;
+    N = A & 0x80;
+
+    C = (oldA >= (operand + (C ? 0 : 1)));
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0xf3:
+{
+  uInt8 pointer = peek(PC++);
+  uInt16 low = peek(pointer++);
+  uInt16 high = ((uInt16)peek(pointer) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  operand = operand + 1;
+  poke(operandAddress, operand);
+
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    operand = ~operand;
+    Int16 difference = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((difference > 127) || (difference < -128));
+
+    difference = ((Int16)A) + ((Int16)operand) + (C ? 1 : 0);
+    A = difference;
+    C = (difference > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 difference = ourBCDTable[0][A] - ourBCDTable[0][operand] 
+        - (C ? 0 : 1);
+
+    if(difference < 0)
+      difference += 100;
+
+    A = ourBCDTable[1][difference];
+    notZ = A;
+    N = A & 0x80;
+
+    C = (oldA >= (operand + (C ? 0 : 1)));
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+
+lab_0x4c:
+{
+  operandAddress = peek(PC++);
+  operandAddress |= ((uInt16)peek(PC++) << 8);
+}
+{
+  PC = operandAddress;
+}
+goto end;
+
+lab_0x6c:
+{
+  uInt16 addr = peek(PC++);
+  addr |= ((uInt16)peek(PC++) << 8);
+
+  // Simulate the error in the indirect addressing mode!
+  uInt16 high = NOTSAMEPAGE(addr, addr + 1) ? (addr & 0xff00) : (addr + 1);
+
+  operandAddress = peek(addr);
+  operandAddress |= ((uInt16)peek(high) << 8);
+}
+{
+  PC = operandAddress;
+}
+goto end;
+
+
+lab_0x20:
+{
+  uInt8 low = peek(PC++);
+  peek(0x0100 + SP);
+
+  // It seems that the 650x does not push the address of the next instruction
+  // on the stack it actually pushes the address of the next instruction
+  // minus one.  This is compensated for in the RTS instruction
+  poke(0x0100 + SP--, PC >> 8);
+  poke(0x0100 + SP--, PC & 0xff);
+
+  PC = low | ((uInt16)peek(PC++) << 8); 
+}
+goto end;
+
+
+lab_0xbb:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  A = X = SP = SP & operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+
+lab_0xaf:
+{
+  uInt16 address = peek(PC++);
+  address |= ((uInt16)peek(PC++) << 8);
+  operand = peek(address);
+}
+{
+  A = operand;
+  X = operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0xbf:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  A = operand;
+  X = operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0xa7:
+{
+  operand = peek(peek(PC++));
+}
+{
+  A = operand;
+  X = operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0xb7:
+{
+  uInt8 address = peek(PC++);
+  peek(address);
+  address += Y;
+  operand = peek(address); 
+}
+{
+  A = operand;
+  X = operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0xa3:
+{
+  uInt8 pointer = peek(PC++);
+  peek(pointer);
+  pointer += X;
+  uInt16 address = peek(pointer++);
+  address |= ((uInt16)peek(pointer) << 8);
+  operand = peek(address);
+}
+{
+  A = operand;
+  X = operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0xb3:
+{
+  uInt8 pointer = peek(PC++);
+  uInt16 low = peek(pointer++);
+  uInt16 high = ((uInt16)peek(pointer) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  A = operand;
+  X = operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+
+lab_0xa9:
+{
+  operand = peek(PC++);
+}
+{
+  A = operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0xa5:
+{
+  operand = peek(peek(PC++));
+}
+{
+  A = operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0xb5:
+{
+  uInt8 address = peek(PC++);
+  peek(address);
+  address += X;
+  operand = peek(address); 
+}
+{
+  A = operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0xad:
+{
+  uInt16 address = peek(PC++);
+  address |= ((uInt16)peek(PC++) << 8);
+  operand = peek(address);
+}
+{
+  A = operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0xbd:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + X));
+  if((low + X) > 0xFF)
+    operand = peek((high | low) + X);
+}
+{
+  A = operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0xb9:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  A = operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0xa1:
+{
+  uInt8 pointer = peek(PC++);
+  peek(pointer);
+  pointer += X;
+  uInt16 address = peek(pointer++);
+  address |= ((uInt16)peek(pointer) << 8);
+  operand = peek(address);
+}
+{
+  A = operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0xb1:
+{
+  uInt8 pointer = peek(PC++);
+  uInt16 low = peek(pointer++);
+  uInt16 high = ((uInt16)peek(pointer) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  A = operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+
+lab_0xa2:
+{
+  operand = peek(PC++);
+}
+{
+  X = operand;
+  notZ = X;
+  N = X & 0x80;
+}
+goto end;
+
+lab_0xa6:
+{
+  operand = peek(peek(PC++));
+}
+{
+  X = operand;
+  notZ = X;
+  N = X & 0x80;
+}
+goto end;
+
+lab_0xb6:
+{
+  uInt8 address = peek(PC++);
+  peek(address);
+  address += Y;
+  operand = peek(address); 
+}
+{
+  X = operand;
+  notZ = X;
+  N = X & 0x80;
+}
+goto end;
+
+lab_0xae:
+{
+  uInt16 address = peek(PC++);
+  address |= ((uInt16)peek(PC++) << 8);
+  operand = peek(address);
+}
+{
+  X = operand;
+  notZ = X;
+  N = X & 0x80;
+}
+goto end;
+
+lab_0xbe:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  X = operand;
+  notZ = X;
+  N = X & 0x80;
+}
+goto end;
+
+
+lab_0xa0:
+{
+  operand = peek(PC++);
+}
+{
+  Y = operand;
+  notZ = Y;
+  N = Y & 0x80;
+}
+goto end;
+
+lab_0xa4:
+{
+  operand = peek(peek(PC++));
+}
+{
+  Y = operand;
+  notZ = Y;
+  N = Y & 0x80;
+}
+goto end;
+
+lab_0xb4:
+{
+  uInt8 address = peek(PC++);
+  peek(address);
+  address += X;
+  operand = peek(address); 
+}
+{
+  Y = operand;
+  notZ = Y;
+  N = Y & 0x80;
+}
+goto end;
+
+lab_0xac:
+{
+  uInt16 address = peek(PC++);
+  address |= ((uInt16)peek(PC++) << 8);
+  operand = peek(address);
+}
+{
+  Y = operand;
+  notZ = Y;
+  N = Y & 0x80;
+}
+goto end;
+
+lab_0xbc:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + X));
+  if((low + X) > 0xFF)
+    operand = peek((high | low) + X);
+}
+{
+  Y = operand;
+  notZ = Y;
+  N = Y & 0x80;
+}
+goto end;
+
+
+lab_0x4a:
+{
+  peek(PC);
+}
+{
+  // Set carry flag according to the right-most bit
+  C = A & 0x01;
+
+  A = (A >> 1) & 0x7f;
+
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+
+lab_0x46:
+{
+  operandAddress = peek(PC++);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the right-most bit in value
+  C = operand & 0x01;
+
+  operand = (operand >> 1) & 0x7f;
+  poke(operandAddress, operand);
+
+  notZ = operand;
+  N = operand & 0x80;
+}
+goto end;
+
+lab_0x56:
+{
+  operandAddress = peek(PC++);
+  peek(operandAddress);
+  operandAddress = (operandAddress + X) & 0xFF;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the right-most bit in value
+  C = operand & 0x01;
+
+  operand = (operand >> 1) & 0x7f;
+  poke(operandAddress, operand);
+
+  notZ = operand;
+  N = operand & 0x80;
+}
+goto end;
+
+lab_0x4e:
+{
+  operandAddress = peek(PC++);
+  operandAddress |= ((uInt16)peek(PC++) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the right-most bit in value
+  C = operand & 0x01;
+
+  operand = (operand >> 1) & 0x7f;
+  poke(operandAddress, operand);
+
+  notZ = operand;
+  N = operand & 0x80;
+}
+goto end;
+
+lab_0x5e:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + X));
+  operandAddress = (high | low) + X;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the right-most bit in value
+  C = operand & 0x01;
+
+  operand = (operand >> 1) & 0x7f;
+  poke(operandAddress, operand);
+
+  notZ = operand;
+  N = operand & 0x80;
+}
+goto end;
+
+
+lab_0xab:
+{
+  operand = peek(PC++);
+}
+{
+  // NOTE: The implementation of this instruction is based on
+  // information from the 64doc.txt file.  This instruction is
+  // reported to be very unstable!
+  A = X = (A | 0xee) & operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+
+lab_0x1a:
+lab_0x3a:
+lab_0x5a:
+lab_0x7a:
+lab_0xda:
+lab_0xea:
+lab_0xfa:
+{
+  peek(PC);
+}
+{
+}
+goto end;
+
+lab_0x80:
+lab_0x82:
+lab_0x89:
+lab_0xc2:
+lab_0xe2:
+{
+  operand = peek(PC++);
+}
+{
+}
+goto end;
+
+lab_0x04:
+lab_0x44:
+lab_0x64:
+{
+  operand = peek(peek(PC++));
+}
+{
+}
+goto end;
+
+lab_0x14:
+lab_0x34:
+lab_0x54:
+lab_0x74:
+lab_0xd4:
+lab_0xf4:
+{
+  uInt8 address = peek(PC++);
+  peek(address);
+  address += X;
+  operand = peek(address); 
+}
+{
+}
+goto end;
+
+lab_0x0c:
+{
+  uInt16 address = peek(PC++);
+  address |= ((uInt16)peek(PC++) << 8);
+  operand = peek(address);
+}
+{
+}
+goto end;
+
+lab_0x1c:
+lab_0x3c:
+lab_0x5c:
+lab_0x7c:
+lab_0xdc:
+lab_0xfc:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + X));
+  if((low + X) > 0xFF)
+    operand = peek((high | low) + X);
+}
+{
+}
+goto end;
+
+
+lab_0x09:
+{
+  operand = peek(PC++);
+}
+{
+  A |= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x05:
+{
+  operand = peek(peek(PC++));
+}
+{
+  A |= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x15:
+{
+  uInt8 address = peek(PC++);
+  peek(address);
+  address += X;
+  operand = peek(address); 
+}
+{
+  A |= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x0d:
+{
+  uInt16 address = peek(PC++);
+  address |= ((uInt16)peek(PC++) << 8);
+  operand = peek(address);
+}
+{
+  A |= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x1d:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + X));
+  if((low + X) > 0xFF)
+    operand = peek((high | low) + X);
+}
+{
+  A |= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x19:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  A |= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x01:
+{
+  uInt8 pointer = peek(PC++);
+  peek(pointer);
+  pointer += X;
+  uInt16 address = peek(pointer++);
+  address |= ((uInt16)peek(pointer) << 8);
+  operand = peek(address);
+}
+{
+  A |= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x11:
+{
+  uInt8 pointer = peek(PC++);
+  uInt16 low = peek(pointer++);
+  uInt16 high = ((uInt16)peek(pointer) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  A |= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+
+lab_0x48:
+{
+  peek(PC);
+}
+{
+  poke(0x0100 + SP--, A);
+}
+goto end;
+
+
+lab_0x08:
+{
+  peek(PC);
+}
+{
+  poke(0x0100 + SP--, PS());
+}
+goto end;
+
+
+lab_0x68:
+{
+  peek(PC);
+}
+{
+  peek(0x0100 + SP++);
+  A = peek(0x0100 + SP);
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+
+lab_0x28:
+{
+  peek(PC);
+}
+{
+  peek(0x0100 + SP++);
+  PS(peek(0x0100 + SP));
+}
+goto end;
+
+
+lab_0x2f:
+{
+  operandAddress = peek(PC++);
+  operandAddress |= ((uInt16)peek(PC++) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = (operand << 1) | (C ? 1 : 0);
+  poke(operandAddress, value);
+
+  A &= value;
+  C = operand & 0x80;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x3f:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + X));
+  operandAddress = (high | low) + X;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = (operand << 1) | (C ? 1 : 0);
+  poke(operandAddress, value);
+
+  A &= value;
+  C = operand & 0x80;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x3b:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = (operand << 1) | (C ? 1 : 0);
+  poke(operandAddress, value);
+
+  A &= value;
+  C = operand & 0x80;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x27:
+{
+  operandAddress = peek(PC++);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = (operand << 1) | (C ? 1 : 0);
+  poke(operandAddress, value);
+
+  A &= value;
+  C = operand & 0x80;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x37:
+{
+  operandAddress = peek(PC++);
+  peek(operandAddress);
+  operandAddress = (operandAddress + X) & 0xFF;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = (operand << 1) | (C ? 1 : 0);
+  poke(operandAddress, value);
+
+  A &= value;
+  C = operand & 0x80;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x23:
+{
+  uInt8 pointer = peek(PC++);
+  peek(pointer);
+  pointer += X;
+  operandAddress = peek(pointer++);
+  operandAddress |= ((uInt16)peek(pointer) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = (operand << 1) | (C ? 1 : 0);
+  poke(operandAddress, value);
+
+  A &= value;
+  C = operand & 0x80;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x33:
+{
+  uInt8 pointer = peek(PC++);
+  uInt16 low = peek(pointer++);
+  uInt16 high = ((uInt16)peek(pointer) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 value = (operand << 1) | (C ? 1 : 0);
+  poke(operandAddress, value);
+
+  A &= value;
+  C = operand & 0x80;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+
+lab_0x2a:
+{
+  peek(PC);
+}
+{
+  bool oldC = C;
+
+  // Set carry flag according to the left-most bit
+  C = A & 0x80;
+
+  A = (A << 1) | (oldC ? 1 : 0);
+
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+
+lab_0x26:
+{
+  operandAddress = peek(PC++);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  bool oldC = C;
+
+  // Set carry flag according to the left-most bit in operand
+  C = operand & 0x80;
+
+  operand = (operand << 1) | (oldC ? 1 : 0);
+  poke(operandAddress, operand);
+
+  notZ = operand;
+  N = operand & 0x80;
+}
+goto end;
+
+lab_0x36:
+{
+  operandAddress = peek(PC++);
+  peek(operandAddress);
+  operandAddress = (operandAddress + X) & 0xFF;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  bool oldC = C;
+
+  // Set carry flag according to the left-most bit in operand
+  C = operand & 0x80;
+
+  operand = (operand << 1) | (oldC ? 1 : 0);
+  poke(operandAddress, operand);
+
+  notZ = operand;
+  N = operand & 0x80;
+}
+goto end;
+
+lab_0x2e:
+{
+  operandAddress = peek(PC++);
+  operandAddress |= ((uInt16)peek(PC++) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  bool oldC = C;
+
+  // Set carry flag according to the left-most bit in operand
+  C = operand & 0x80;
+
+  operand = (operand << 1) | (oldC ? 1 : 0);
+  poke(operandAddress, operand);
+
+  notZ = operand;
+  N = operand & 0x80;
+}
+goto end;
+
+lab_0x3e:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + X));
+  operandAddress = (high | low) + X;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  bool oldC = C;
+
+  // Set carry flag according to the left-most bit in operand
+  C = operand & 0x80;
+
+  operand = (operand << 1) | (oldC ? 1 : 0);
+  poke(operandAddress, operand);
+
+  notZ = operand;
+  N = operand & 0x80;
+}
+goto end;
+
+
+lab_0x6a:
+{
+  peek(PC);
+}
+{
+  bool oldC = C;
+
+  // Set carry flag according to the right-most bit
+  C = A & 0x01;
+
+  A = ((A >> 1) & 0x7f) | (oldC ? 0x80 : 0x00);
+
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x66:
+{
+  operandAddress = peek(PC++);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  bool oldC = C;
+
+  // Set carry flag according to the right-most bit
+  C = operand & 0x01;
+
+  operand = ((operand >> 1) & 0x7f) | (oldC ? 0x80 : 0x00);
+  poke(operandAddress, operand);
+
+  notZ = operand;
+  N = operand & 0x80;
+}
+goto end;
+
+lab_0x76:
+{
+  operandAddress = peek(PC++);
+  peek(operandAddress);
+  operandAddress = (operandAddress + X) & 0xFF;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  bool oldC = C;
+
+  // Set carry flag according to the right-most bit
+  C = operand & 0x01;
+
+  operand = ((operand >> 1) & 0x7f) | (oldC ? 0x80 : 0x00);
+  poke(operandAddress, operand);
+
+  notZ = operand;
+  N = operand & 0x80;
+}
+goto end;
+
+lab_0x6e:
+{
+  operandAddress = peek(PC++);
+  operandAddress |= ((uInt16)peek(PC++) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  bool oldC = C;
+
+  // Set carry flag according to the right-most bit
+  C = operand & 0x01;
+
+  operand = ((operand >> 1) & 0x7f) | (oldC ? 0x80 : 0x00);
+  poke(operandAddress, operand);
+
+  notZ = operand;
+  N = operand & 0x80;
+}
+goto end;
+
+lab_0x7e:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + X));
+  operandAddress = (high | low) + X;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  bool oldC = C;
+
+  // Set carry flag according to the right-most bit
+  C = operand & 0x01;
+
+  operand = ((operand >> 1) & 0x7f) | (oldC ? 0x80 : 0x00);
+  poke(operandAddress, operand);
+
+  notZ = operand;
+  N = operand & 0x80;
+}
+goto end;
+
+
+lab_0x6f:
+{
+  operandAddress = peek(PC++);
+  operandAddress |= ((uInt16)peek(PC++) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 oldA = A;
+  bool oldC = C;
+
+  // Set carry flag according to the right-most bit
+  C = operand & 0x01;
+
+  operand = ((operand >> 1) & 0x7f) | (oldC ? 0x80 : 0x00);
+  poke(operandAddress, operand);
+
+  if(!D)
+  {
+    Int16 sum = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((sum > 127) || (sum < -128));
+
+    sum = (Int16)A + (Int16)operand + (C ? 1 : 0);
+    A = sum;
+    C = (sum > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 sum = ourBCDTable[0][A] + ourBCDTable[0][operand] + (C ? 1 : 0);
+
+    C = (sum > 99);
+    A = ourBCDTable[1][sum & 0xff];
+    notZ = A;
+    N = A & 0x80;
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0x7f:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + X));
+  operandAddress = (high | low) + X;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 oldA = A;
+  bool oldC = C;
+
+  // Set carry flag according to the right-most bit
+  C = operand & 0x01;
+
+  operand = ((operand >> 1) & 0x7f) | (oldC ? 0x80 : 0x00);
+  poke(operandAddress, operand);
+
+  if(!D)
+  {
+    Int16 sum = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((sum > 127) || (sum < -128));
+
+    sum = (Int16)A + (Int16)operand + (C ? 1 : 0);
+    A = sum;
+    C = (sum > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 sum = ourBCDTable[0][A] + ourBCDTable[0][operand] + (C ? 1 : 0);
+
+    C = (sum > 99);
+    A = ourBCDTable[1][sum & 0xff];
+    notZ = A;
+    N = A & 0x80;
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0x7b:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 oldA = A;
+  bool oldC = C;
+
+  // Set carry flag according to the right-most bit
+  C = operand & 0x01;
+
+  operand = ((operand >> 1) & 0x7f) | (oldC ? 0x80 : 0x00);
+  poke(operandAddress, operand);
+
+  if(!D)
+  {
+    Int16 sum = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((sum > 127) || (sum < -128));
+
+    sum = (Int16)A + (Int16)operand + (C ? 1 : 0);
+    A = sum;
+    C = (sum > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 sum = ourBCDTable[0][A] + ourBCDTable[0][operand] + (C ? 1 : 0);
+
+    C = (sum > 99);
+    A = ourBCDTable[1][sum & 0xff];
+    notZ = A;
+    N = A & 0x80;
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0x67:
+{
+  operandAddress = peek(PC++);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 oldA = A;
+  bool oldC = C;
+
+  // Set carry flag according to the right-most bit
+  C = operand & 0x01;
+
+  operand = ((operand >> 1) & 0x7f) | (oldC ? 0x80 : 0x00);
+  poke(operandAddress, operand);
+
+  if(!D)
+  {
+    Int16 sum = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((sum > 127) || (sum < -128));
+
+    sum = (Int16)A + (Int16)operand + (C ? 1 : 0);
+    A = sum;
+    C = (sum > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 sum = ourBCDTable[0][A] + ourBCDTable[0][operand] + (C ? 1 : 0);
+
+    C = (sum > 99);
+    A = ourBCDTable[1][sum & 0xff];
+    notZ = A;
+    N = A & 0x80;
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0x77:
+{
+  operandAddress = peek(PC++);
+  peek(operandAddress);
+  operandAddress = (operandAddress + X) & 0xFF;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 oldA = A;
+  bool oldC = C;
+
+  // Set carry flag according to the right-most bit
+  C = operand & 0x01;
+
+  operand = ((operand >> 1) & 0x7f) | (oldC ? 0x80 : 0x00);
+  poke(operandAddress, operand);
+
+  if(!D)
+  {
+    Int16 sum = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((sum > 127) || (sum < -128));
+
+    sum = (Int16)A + (Int16)operand + (C ? 1 : 0);
+    A = sum;
+    C = (sum > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 sum = ourBCDTable[0][A] + ourBCDTable[0][operand] + (C ? 1 : 0);
+
+    C = (sum > 99);
+    A = ourBCDTable[1][sum & 0xff];
+    notZ = A;
+    N = A & 0x80;
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0x63:
+{
+  uInt8 pointer = peek(PC++);
+  peek(pointer);
+  pointer += X;
+  operandAddress = peek(pointer++);
+  operandAddress |= ((uInt16)peek(pointer) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 oldA = A;
+  bool oldC = C;
+
+  // Set carry flag according to the right-most bit
+  C = operand & 0x01;
+
+  operand = ((operand >> 1) & 0x7f) | (oldC ? 0x80 : 0x00);
+  poke(operandAddress, operand);
+
+  if(!D)
+  {
+    Int16 sum = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((sum > 127) || (sum < -128));
+
+    sum = (Int16)A + (Int16)operand + (C ? 1 : 0);
+    A = sum;
+    C = (sum > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 sum = ourBCDTable[0][A] + ourBCDTable[0][operand] + (C ? 1 : 0);
+
+    C = (sum > 99);
+    A = ourBCDTable[1][sum & 0xff];
+    notZ = A;
+    N = A & 0x80;
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0x73:
+{
+  uInt8 pointer = peek(PC++);
+  uInt16 low = peek(pointer++);
+  uInt16 high = ((uInt16)peek(pointer) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  uInt8 oldA = A;
+  bool oldC = C;
+
+  // Set carry flag according to the right-most bit
+  C = operand & 0x01;
+
+  operand = ((operand >> 1) & 0x7f) | (oldC ? 0x80 : 0x00);
+  poke(operandAddress, operand);
+
+  if(!D)
+  {
+    Int16 sum = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((sum > 127) || (sum < -128));
+
+    sum = (Int16)A + (Int16)operand + (C ? 1 : 0);
+    A = sum;
+    C = (sum > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 sum = ourBCDTable[0][A] + ourBCDTable[0][operand] + (C ? 1 : 0);
+
+    C = (sum > 99);
+    A = ourBCDTable[1][sum & 0xff];
+    notZ = A;
+    N = A & 0x80;
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+
+lab_0x40:
+{
+  peek(PC);
+}
+{
+  peek(0x0100 + SP++);
+  PS(peek(0x0100 + SP++));
+  PC = peek(0x0100 + SP++);
+  PC |= ((uInt16)peek(0x0100 + SP) << 8);
+}
+goto end;
+
+
+lab_0x60:
+{
+  peek(PC);
+}
+{
+  peek(0x0100 + SP++);
+  PC = peek(0x0100 + SP++);
+  PC |= ((uInt16)peek(0x0100 + SP) << 8);
+  peek(PC++);
+}
+goto end;
+
+
+lab_0x8f:
+{
+  operandAddress = peek(PC++);
+  operandAddress |= ((uInt16)peek(PC++) << 8);
+}
+{
+  poke(operandAddress, A & X);
+}
+goto end;
+
+lab_0x87:
+{
+  operandAddress = peek(PC++);
+}
+{
+  poke(operandAddress, A & X);
+}
+goto end;
+
+lab_0x97:
+{
+  operandAddress = peek(PC++);
+  peek(operandAddress);
+  operandAddress = (operandAddress + Y) & 0xFF;
+}
+{
+  poke(operandAddress, A & X);
+}
+goto end;
+
+lab_0x83:
+{
+  uInt8 pointer = peek(PC++);
+  peek(pointer);
+  pointer += X;
+  operandAddress = peek(pointer++);
+  operandAddress |= ((uInt16)peek(pointer) << 8);
+}
+{
+  poke(operandAddress, A & X);
+}
+goto end;
+
+
+lab_0xe9:
+lab_0xeb:
+{
+  operand = peek(PC++);
+}
+{
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    operand = ~operand;
+    Int16 difference = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((difference > 127) || (difference < -128));
+
+    difference = ((Int16)A) + ((Int16)operand) + (C ? 1 : 0);
+    A = difference;
+    C = (difference > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 difference = ourBCDTable[0][A] - ourBCDTable[0][operand] 
+        - (C ? 0 : 1);
+
+    if(difference < 0)
+      difference += 100;
+
+    A = ourBCDTable[1][difference];
+    notZ = A;
+    N = A & 0x80;
+
+    C = (oldA >= (operand + (C ? 0 : 1)));
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0xe5:
+{
+  operand = peek(peek(PC++));
+}
+{
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    operand = ~operand;
+    Int16 difference = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((difference > 127) || (difference < -128));
+
+    difference = ((Int16)A) + ((Int16)operand) + (C ? 1 : 0);
+    A = difference;
+    C = (difference > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 difference = ourBCDTable[0][A] - ourBCDTable[0][operand] 
+        - (C ? 0 : 1);
+
+    if(difference < 0)
+      difference += 100;
+
+    A = ourBCDTable[1][difference];
+    notZ = A;
+    N = A & 0x80;
+
+    C = (oldA >= (operand + (C ? 0 : 1)));
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0xf5:
+{
+  uInt8 address = peek(PC++);
+  peek(address);
+  address += X;
+  operand = peek(address); 
+}
+{
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    operand = ~operand;
+    Int16 difference = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((difference > 127) || (difference < -128));
+
+    difference = ((Int16)A) + ((Int16)operand) + (C ? 1 : 0);
+    A = difference;
+    C = (difference > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 difference = ourBCDTable[0][A] - ourBCDTable[0][operand] 
+        - (C ? 0 : 1);
+
+    if(difference < 0)
+      difference += 100;
+
+    A = ourBCDTable[1][difference];
+    notZ = A;
+    N = A & 0x80;
+
+    C = (oldA >= (operand + (C ? 0 : 1)));
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0xed:
+{
+  uInt16 address = peek(PC++);
+  address |= ((uInt16)peek(PC++) << 8);
+  operand = peek(address);
+}
+{
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    operand = ~operand;
+    Int16 difference = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((difference > 127) || (difference < -128));
+
+    difference = ((Int16)A) + ((Int16)operand) + (C ? 1 : 0);
+    A = difference;
+    C = (difference > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 difference = ourBCDTable[0][A] - ourBCDTable[0][operand] 
+        - (C ? 0 : 1);
+
+    if(difference < 0)
+      difference += 100;
+
+    A = ourBCDTable[1][difference];
+    notZ = A;
+    N = A & 0x80;
+
+    C = (oldA >= (operand + (C ? 0 : 1)));
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0xfd:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + X));
+  if((low + X) > 0xFF)
+    operand = peek((high | low) + X);
+}
+{
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    operand = ~operand;
+    Int16 difference = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((difference > 127) || (difference < -128));
+
+    difference = ((Int16)A) + ((Int16)operand) + (C ? 1 : 0);
+    A = difference;
+    C = (difference > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 difference = ourBCDTable[0][A] - ourBCDTable[0][operand] 
+        - (C ? 0 : 1);
+
+    if(difference < 0)
+      difference += 100;
+
+    A = ourBCDTable[1][difference];
+    notZ = A;
+    N = A & 0x80;
+
+    C = (oldA >= (operand + (C ? 0 : 1)));
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0xf9:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    operand = ~operand;
+    Int16 difference = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((difference > 127) || (difference < -128));
+
+    difference = ((Int16)A) + ((Int16)operand) + (C ? 1 : 0);
+    A = difference;
+    C = (difference > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 difference = ourBCDTable[0][A] - ourBCDTable[0][operand] 
+        - (C ? 0 : 1);
+
+    if(difference < 0)
+      difference += 100;
+
+    A = ourBCDTable[1][difference];
+    notZ = A;
+    N = A & 0x80;
+
+    C = (oldA >= (operand + (C ? 0 : 1)));
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0xe1:
+{
+  uInt8 pointer = peek(PC++);
+  peek(pointer);
+  pointer += X;
+  uInt16 address = peek(pointer++);
+  address |= ((uInt16)peek(pointer) << 8);
+  operand = peek(address);
+}
+{
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    operand = ~operand;
+    Int16 difference = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((difference > 127) || (difference < -128));
+
+    difference = ((Int16)A) + ((Int16)operand) + (C ? 1 : 0);
+    A = difference;
+    C = (difference > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 difference = ourBCDTable[0][A] - ourBCDTable[0][operand] 
+        - (C ? 0 : 1);
+
+    if(difference < 0)
+      difference += 100;
+
+    A = ourBCDTable[1][difference];
+    notZ = A;
+    N = A & 0x80;
+
+    C = (oldA >= (operand + (C ? 0 : 1)));
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+lab_0xf1:
+{
+  uInt8 pointer = peek(PC++);
+  uInt16 low = peek(pointer++);
+  uInt16 high = ((uInt16)peek(pointer) << 8);
+  operand = peek(high | (uInt8)(low + Y));
+  if((low + Y) > 0xFF)
+    operand = peek((high | low) + Y);
+}
+{
+  uInt8 oldA = A;
+
+  if(!D)
+  {
+    operand = ~operand;
+    Int16 difference = (Int16)((Int8)A) + (Int16)((Int8)operand) + (C ? 1 : 0);
+    V = ((difference > 127) || (difference < -128));
+
+    difference = ((Int16)A) + ((Int16)operand) + (C ? 1 : 0);
+    A = difference;
+    C = (difference > 0xff);
+    notZ = A;
+    N = A & 0x80;
+  }
+  else
+  {
+    Int16 difference = ourBCDTable[0][A] - ourBCDTable[0][operand] 
+        - (C ? 0 : 1);
+
+    if(difference < 0)
+      difference += 100;
+
+    A = ourBCDTable[1][difference];
+    notZ = A;
+    N = A & 0x80;
+
+    C = (oldA >= (operand + (C ? 0 : 1)));
+    V = ((oldA ^ A) & 0x80) && ((A ^ operand) & 0x80);
+  }
+}
+goto end;
+
+
+lab_0xcb:
+{
+  operand = peek(PC++);
+}
+{
+  uInt16 value = (uInt16)(X & A) - (uInt16)operand;
+  X = (value & 0xff);
+
+  notZ = X;
+  N = X & 0x80;
+  C = !(value & 0x0100);
+}
+goto end;
+
+
+lab_0x38:
+{
+  peek(PC);
+}
+{
+  C = true;
+}
+goto end;
+
+
+lab_0xf8:
+{
+  peek(PC);
+}
+{
+  D = true;
+}
+goto end;
+
+
+lab_0x78:
+{
+  peek(PC);
+}
+{
+  I = true;
+}
+goto end;
+
+
+lab_0x9f:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+}
+{
+  // NOTE: There are mixed reports on the actual operation
+  // of this instruction!
+  poke(operandAddress, A & X & (((operandAddress >> 8) & 0xff) + 1)); 
+}
+goto end;
+
+lab_0x93:
+{
+  uInt8 pointer = peek(PC++);
+  uInt16 low = peek(pointer++);
+  uInt16 high = ((uInt16)peek(pointer) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+}
+{
+  // NOTE: There are mixed reports on the actual operation
+  // of this instruction!
+  poke(operandAddress, A & X & (((operandAddress >> 8) & 0xff) + 1)); 
+}
+goto end;
+
+
+lab_0x9b:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+}
+{
+  // NOTE: There are mixed reports on the actual operation
+  // of this instruction!
+  SP = A & X;
+  poke(operandAddress, A & X & (((operandAddress >> 8) & 0xff) + 1)); 
+}
+goto end;
+
+
+lab_0x9e:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+}
+{
+  // NOTE: There are mixed reports on the actual operation
+  // of this instruction!
+  poke(operandAddress, X & (((operandAddress >> 8) & 0xff) + 1)); 
+}
+goto end;
+
+
+lab_0x9c:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + X));
+  operandAddress = (high | low) + X;
+}
+{
+  // NOTE: There are mixed reports on the actual operation
+  // of this instruction!
+  poke(operandAddress, Y & (((operandAddress >> 8) & 0xff) + 1)); 
+}
+goto end;
+
+
+lab_0x0f:
+{
+  operandAddress = peek(PC++);
+  operandAddress |= ((uInt16)peek(PC++) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the left-most bit in value
+  C = operand & 0x80;
+
+  operand <<= 1;
+  poke(operandAddress, operand);
+
+  A |= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x1f:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + X));
+  operandAddress = (high | low) + X;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the left-most bit in value
+  C = operand & 0x80;
+
+  operand <<= 1;
+  poke(operandAddress, operand);
+
+  A |= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x1b:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the left-most bit in value
+  C = operand & 0x80;
+
+  operand <<= 1;
+  poke(operandAddress, operand);
+
+  A |= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x07:
+{
+  operandAddress = peek(PC++);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the left-most bit in value
+  C = operand & 0x80;
+
+  operand <<= 1;
+  poke(operandAddress, operand);
+
+  A |= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x17:
+{
+  operandAddress = peek(PC++);
+  peek(operandAddress);
+  operandAddress = (operandAddress + X) & 0xFF;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the left-most bit in value
+  C = operand & 0x80;
+
+  operand <<= 1;
+  poke(operandAddress, operand);
+
+  A |= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x03:
+{
+  uInt8 pointer = peek(PC++);
+  peek(pointer);
+  pointer += X;
+  operandAddress = peek(pointer++);
+  operandAddress |= ((uInt16)peek(pointer) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the left-most bit in value
+  C = operand & 0x80;
+
+  operand <<= 1;
+  poke(operandAddress, operand);
+
+  A |= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x13:
+{
+  uInt8 pointer = peek(PC++);
+  uInt16 low = peek(pointer++);
+  uInt16 high = ((uInt16)peek(pointer) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the left-most bit in value
+  C = operand & 0x80;
+
+  operand <<= 1;
+  poke(operandAddress, operand);
+
+  A |= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+
+lab_0x4f:
+{
+  operandAddress = peek(PC++);
+  operandAddress |= ((uInt16)peek(PC++) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the right-most bit in value
+  C = operand & 0x01;
+
+  operand = (operand >> 1) & 0x7f;
+  poke(operandAddress, operand);
+
+  A ^= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x5f:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + X));
+  operandAddress = (high | low) + X;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the right-most bit in value
+  C = operand & 0x01;
+
+  operand = (operand >> 1) & 0x7f;
+  poke(operandAddress, operand);
+
+  A ^= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x5b:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the right-most bit in value
+  C = operand & 0x01;
+
+  operand = (operand >> 1) & 0x7f;
+  poke(operandAddress, operand);
+
+  A ^= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x47:
+{
+  operandAddress = peek(PC++);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the right-most bit in value
+  C = operand & 0x01;
+
+  operand = (operand >> 1) & 0x7f;
+  poke(operandAddress, operand);
+
+  A ^= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x57:
+{
+  operandAddress = peek(PC++);
+  peek(operandAddress);
+  operandAddress = (operandAddress + X) & 0xFF;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the right-most bit in value
+  C = operand & 0x01;
+
+  operand = (operand >> 1) & 0x7f;
+  poke(operandAddress, operand);
+
+  A ^= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x43:
+{
+  uInt8 pointer = peek(PC++);
+  peek(pointer);
+  pointer += X;
+  operandAddress = peek(pointer++);
+  operandAddress |= ((uInt16)peek(pointer) << 8);
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the right-most bit in value
+  C = operand & 0x01;
+
+  operand = (operand >> 1) & 0x7f;
+  poke(operandAddress, operand);
+
+  A ^= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0x53:
+{
+  uInt8 pointer = peek(PC++);
+  uInt16 low = peek(pointer++);
+  uInt16 high = ((uInt16)peek(pointer) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+  operand = peek(operandAddress);
+  poke(operandAddress, operand);
+}
+{
+  // Set carry flag according to the right-most bit in value
+  C = operand & 0x01;
+
+  operand = (operand >> 1) & 0x7f;
+  poke(operandAddress, operand);
+
+  A ^= operand;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+
+lab_0x85:
+{
+  operandAddress = peek(PC++);
+}
+{
+  poke(operandAddress, A);
+}
+goto end;
+
+lab_0x95:
+{
+  operandAddress = peek(PC++);
+  peek(operandAddress);
+  operandAddress = (operandAddress + X) & 0xFF;
+}
+{
+  poke(operandAddress, A);
+}
+goto end;
+
+lab_0x8d:
+{
+  operandAddress = peek(PC++);
+  operandAddress |= ((uInt16)peek(PC++) << 8);
+}
+{
+  poke(operandAddress, A);
+}
+goto end;
+
+lab_0x9d:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + X));
+  operandAddress = (high | low) + X;
+}
+{
+  poke(operandAddress, A);
+}
+goto end;
+
+lab_0x99:
+{
+  uInt16 low = peek(PC++);
+  uInt16 high = ((uInt16)peek(PC++) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+}
+{
+  poke(operandAddress, A);
+}
+goto end;
+
+lab_0x81:
+{
+  uInt8 pointer = peek(PC++);
+  peek(pointer);
+  pointer += X;
+  operandAddress = peek(pointer++);
+  operandAddress |= ((uInt16)peek(pointer) << 8);
+}
+{
+  poke(operandAddress, A);
+}
+goto end;
+
+lab_0x91:
+{
+  uInt8 pointer = peek(PC++);
+  uInt16 low = peek(pointer++);
+  uInt16 high = ((uInt16)peek(pointer) << 8);
+  peek(high | (uInt8)(low + Y));
+  operandAddress = (high | low) + Y;
+}
+{
+  poke(operandAddress, A);
+}
+goto end;
+
+
+lab_0x86:
+{
+  operandAddress = peek(PC++);
+}
+{
+  poke(operandAddress, X);
+}
+goto end;
+
+lab_0x96:
+{
+  operandAddress = peek(PC++);
+  peek(operandAddress);
+  operandAddress = (operandAddress + Y) & 0xFF;
+}
+{
+  poke(operandAddress, X);
+}
+goto end;
+
+lab_0x8e:
+{
+  operandAddress = peek(PC++);
+  operandAddress |= ((uInt16)peek(PC++) << 8);
+}
+{
+  poke(operandAddress, X);
+}
+goto end;
+
+
+lab_0x84:
+{
+  operandAddress = peek(PC++);
+}
+{
+  poke(operandAddress, Y);
+}
+goto end;
+
+lab_0x94:
+{
+  operandAddress = peek(PC++);
+  peek(operandAddress);
+  operandAddress = (operandAddress + X) & 0xFF;
+}
+{
+  poke(operandAddress, Y);
+}
+goto end;
+
+lab_0x8c:
+{
+  operandAddress = peek(PC++);
+  operandAddress |= ((uInt16)peek(PC++) << 8);
+}
+{
+  poke(operandAddress, Y);
+}
+goto end;
+
+
+lab_0xaa:
+{
+  peek(PC);
+}
+{
+  X = A;
+  notZ = X;
+  N = X & 0x80;
+}
+goto end;
+
+
+lab_0xa8:
+{
+  peek(PC);
+}
+{
+  Y = A;
+  notZ = Y;
+  N = Y & 0x80;
+}
+goto end;
+
+
+lab_0xba:
+{
+  peek(PC);
+}
+{
+  X = SP;
+  notZ = X;
+  N = X & 0x80;
+}
+goto end;
+
+
+lab_0x8a:
+{
+  peek(PC);
+}
+{
+  A = X;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+
+lab_0x9a:
+{
+  peek(PC);
+}
+{
+  SP = X;
+}
+goto end;
+
+
+lab_0x98:
+{
+  peek(PC);
+}
+{
+  A = Y;
+  notZ = A;
+  N = A & 0x80;
+}
+goto end;
+
+lab_0xf2:
+lab_0xd2:
+lab_0xb2:
+lab_0x92:
+lab_0x72:
+lab_0x62:
+lab_0x52:
+lab_0x42:
+lab_0x32:
+lab_0x22:
+lab_0x12:
+lab_0x02:
+goto end;
+
